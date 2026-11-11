@@ -1,0 +1,673 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>우리집 찾기</title>
+<style>
+:root{
+  --bg:#f3f2f8; --card:#ffffff; --text:#1d1b29; --muted:#6b6880; --line:#ebe9f3;
+  --primary:#6550d8; --primary-2:#7563e3; --primary-soft:#eeebfc; --primary-ink:#4a39b8;
+  --dark:#1e1b2e; --dark-ink:#ffffff;
+  --ok:#2f9e6b; --warn-bg:#fdebe3; --warn:#c2410c; --q-bg:#fff6d8; --q:#8a6a00;
+  --off-bg:#f1f0f5; --off:#9b98ab; --heart:#6550d8;
+  --shadow:0 1px 2px rgba(30,27,46,.04),0 4px 16px rgba(30,27,46,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121118; --card:#1c1b25; --text:#ecebf3; --muted:#a3a0b5; --line:#2b2937;
+    --primary:#8b7bf0; --primary-2:#6f5fe0; --primary-soft:#2a2547; --primary-ink:#c4bbff;
+    --dark:#ecebf3; --dark-ink:#1c1b25;
+    --ok:#5fd09a; --warn-bg:#3a2118; --warn:#ff9b6b; --q-bg:#332c12; --q:#e8cd6a;
+    --off-bg:#25242f; --off:#76738a; --heart:#a99cff;
+    --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121118; --card:#1c1b25; --text:#ecebf3; --muted:#a3a0b5; --line:#2b2937;
+  --primary:#8b7bf0; --primary-2:#6f5fe0; --primary-soft:#2a2547; --primary-ink:#c4bbff;
+  --dark:#ecebf3; --dark-ink:#1c1b25;
+  --ok:#5fd09a; --warn-bg:#3a2118; --warn:#ff9b6b; --q-bg:#332c12; --q:#e8cd6a;
+  --off-bg:#25242f; --off:#76738a; --heart:#a99cff; --shadow:none;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:15px/1.5 "Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+button,select,input,textarea{font:inherit;color:inherit}
+svg{display:block}
+.wrap{max-width:1040px;margin:0 auto;padding:0 16px}
+.hidden{display:none!important}
+
+/* 상단 바 */
+.appbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:14px 0 18px}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none}
+.logo{width:44px;height:44px;border-radius:12px;background:var(--primary);color:#fff;display:grid;place-items:center;flex:none}
+.brand b{display:block;font-size:20px;letter-spacing:-.3px}
+.brand small{display:block;color:var(--muted);font-size:13px}
+.actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:8px;background:var(--card);border-radius:999px;padding:7px 14px;font-size:13px;box-shadow:var(--shadow);white-space:nowrap}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--ok);flex:none}
+.sel{appearance:none;background:var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b6880' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center;border:0;border-radius:999px;padding:7px 32px 7px 14px;font-size:13px;box-shadow:var(--shadow);cursor:pointer;min-height:34px}
+.iconbtn{display:inline-flex;align-items:center;gap:6px;border:0;background:var(--card);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600;box-shadow:var(--shadow);cursor:pointer;min-height:34px}
+.iconbtn:hover{background:var(--primary-soft)}
+.iconbtn.busy svg{animation:spin 1s linear infinite}
+.iconbtn.busy{color:var(--primary-ink)}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* 히어로 */
+.hero{background:linear-gradient(135deg,var(--primary-2),var(--primary));color:#fff;border-radius:22px;padding:28px;display:grid;grid-template-columns:1fr 1.45fr;gap:20px;align-items:center}
+.hero .k{font-size:14px;opacity:.9}
+.hero .big{font-size:44px;font-weight:800;line-height:1.15;margin:6px 0;letter-spacing:-1px}
+.hero .sub{font-size:13px;opacity:.85}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.tile{background:rgba(255,255,255,.14);border-radius:14px;padding:14px 16px;border:0;color:#fff;text-align:left;cursor:pointer}
+.tile:hover{background:rgba(255,255,255,.22)}
+.tile span{display:block;font-size:12px;opacity:.9}
+.tile b{display:block;font-size:22px;margin-top:6px}
+
+/* 탭 */
+.tabs{background:var(--card);border-radius:18px;padding:6px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:16px 0;box-shadow:var(--shadow)}
+.tab{border:0;background:transparent;border-radius:13px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;text-align:left}
+.tab:hover{background:var(--bg)}
+.tab.on{background:var(--primary-soft)}
+.tab b{display:flex;align-items:center;gap:6px;font-size:15px}
+.tab small{display:block;color:var(--muted);font-size:12px}
+.tab .cnt{min-width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;background:var(--off-bg);color:var(--muted);flex:none}
+.tab.on .cnt{background:var(--primary);color:#fff}
+
+/* 필터 */
+.filters{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.chipsrow{display:flex;gap:8px;flex-wrap:wrap}
+.fchip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 16px;font-size:14px;font-weight:600;cursor:pointer}
+.fchip.on{background:var(--dark);border-color:var(--dark);color:var(--dark-ink)}
+.sortsel{background-color:transparent;box-shadow:none;color:var(--muted)}
+
+/* 목록 */
+.list{display:flex;flex-direction:column;gap:12px}
+.item{background:var(--card);border-radius:20px;padding:20px 22px;display:grid;grid-template-columns:auto minmax(150px,.85fr) 1.6fr auto;gap:18px;align-items:center;box-shadow:var(--shadow)}
+.ico{width:52px;height:52px;border-radius:14px;background:var(--primary-soft);color:var(--primary);display:grid;place-items:center}
+.nm{display:flex;align-items:center;gap:8px;font-size:18px;font-weight:700}
+.nm a{text-decoration:none}
+.nm a:hover{text-decoration:underline}
+.loc{display:flex;align-items:center;gap:4px;color:var(--muted);font-size:13px;margin-top:4px}
+.heart{border:0;background:transparent;color:var(--off);cursor:pointer;padding:4px;border-radius:8px;display:inline-grid;place-items:center}
+.heart:hover{background:var(--primary-soft)}
+.heart.on{color:var(--heart)}
+.heart.on svg path{fill:currentColor}
+.pr{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.pr b{font-size:20px;letter-spacing:-.3px}
+.pr span{font-size:13px;color:var(--muted)}
+.prog{display:flex;align-items:center;gap:10px;margin:8px 0 10px}
+.track{flex:1;height:5px;border-radius:9px;background:var(--off-bg);overflow:hidden}
+.track i{display:block;height:100%;background:var(--primary);border-radius:9px}
+.prog span{font-size:12px;font-weight:600;white-space:nowrap}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:12px;font-weight:600;border-radius:7px;padding:4px 9px;background:var(--primary-soft);color:var(--primary-ink);white-space:nowrap}
+.chip.n{background:var(--off-bg);color:var(--off);text-decoration:line-through}
+.chip.q{background:var(--q-bg);color:var(--q)}
+.act{display:flex;align-items:center;gap:10px}
+.rent{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600;background:var(--off-bg);color:var(--muted);white-space:nowrap}
+.rent::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.7}
+.rent.bad{background:var(--warn-bg);color:var(--warn)}
+.rent.q{background:var(--q-bg);color:var(--q)}
+.go{display:inline-flex;align-items:center;gap:6px;background:var(--dark);color:var(--dark-ink);text-decoration:none;border-radius:12px;padding:12px 16px;font-weight:700;font-size:14px;white-space:nowrap}
+.go:hover{opacity:.9}
+.gone{font-size:12px;color:var(--warn);font-weight:600}
+.empty{background:var(--card);border-radius:20px;padding:40px 20px;text-align:center;color:var(--muted)}
+
+/* 상세 */
+.dtop{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.back{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:0;border-radius:12px;padding:10px 16px;font-weight:700;font-size:14px;box-shadow:var(--shadow);cursor:pointer;text-decoration:none}
+.dtop small{color:var(--muted);font-size:13px}
+.card{background:var(--card);border-radius:20px;padding:22px 24px;box-shadow:var(--shadow)}
+.dhead{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding:28px}
+.dhead .l{display:flex;align-items:center;gap:20px}
+.dhead .ico{width:64px;height:64px;border-radius:16px}
+.dhead h1{margin:0;font-size:26px;letter-spacing:-.5px;display:flex;align-items:center;gap:8px}
+.badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.badge{font-size:12px;font-weight:700;border-radius:999px;padding:5px 11px;background:var(--primary-soft);color:var(--primary-ink)}
+.badge.rent{padding:5px 11px;font-size:12px}
+.dprice{text-align:right}
+.dprice small{color:var(--muted);font-size:13px}
+.dprice b{display:block;color:var(--primary);font-size:34px;font-weight:800;letter-spacing:-.8px}
+.facts{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin:12px 0}
+.fact{background:var(--card);border-radius:16px;padding:16px 18px;box-shadow:var(--shadow)}
+.fact small{display:block;color:var(--muted);font-size:12px}
+.fact b{display:block;font-size:16px;margin-top:6px}
+.cols{display:grid;grid-template-columns:1.4fr 1fr;gap:14px;align-items:start}
+.col{display:flex;flex-direction:column;gap:14px;min-width:0}
+.card h3{margin:0 0 14px;font-size:16px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card h3 small{font-size:12px;color:var(--muted);font-weight:500}
+.tag{font-size:12px;font-weight:700;border-radius:999px;padding:4px 10px;background:var(--primary-soft);color:var(--primary-ink)}
+.crow{display:grid;grid-template-columns:28px 54px 1fr auto;gap:10px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}
+.crow:last-child{border-bottom:0}
+.cmark{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:800;background:var(--primary);color:#fff}
+.cmark.n{background:var(--off-bg);color:var(--off)}
+.cmark.q{background:var(--q-bg);color:var(--q)}
+.crow .r{color:var(--muted);font-size:12px}
+.crow .v{font-weight:700;text-align:right;overflow-wrap:anywhere}
+.loccard{display:flex;align-items:center;gap:12px;background:var(--bg);border-radius:14px;padding:14px;margin-bottom:10px}
+.loccard .i{width:36px;height:36px;border-radius:10px;background:var(--card);color:var(--primary);display:grid;place-items:center;flex:none}
+.loccard small{display:block;color:var(--muted);font-size:12px}
+.loccard b{display:block;font-size:14px}
+.link{color:var(--primary);font-weight:700;font-size:14px}
+.p{margin:0;font-size:14px;color:var(--text);line-height:1.65}
+.tl{list-style:none;margin:16px 0;padding:0}
+.tl li{position:relative;padding:0 0 18px 26px}
+.tl li::before{content:"";position:absolute;left:3px;top:5px;width:11px;height:11px;border-radius:50%;background:var(--primary);box-shadow:0 0 0 4px var(--primary-soft)}
+.tl li::after{content:"";position:absolute;left:8px;top:20px;bottom:0;width:2px;background:var(--line)}
+.tl li:last-child::after{display:none}
+.tl small{display:block;color:var(--primary-ink);font-weight:700;font-size:12px}
+.tl span{font-size:14px}
+.srcs{display:flex;flex-direction:column;gap:6px}
+.notice{background:var(--primary-soft);color:var(--primary-ink);border-radius:12px;padding:12px 16px;font-weight:700;font-size:14px;margin-bottom:10px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{color:var(--muted);font-weight:500;font-size:13px;text-align:left;padding:10px 0;border-bottom:1px solid var(--line)}
+td{padding:12px 0;border-bottom:1px solid var(--line)}
+th:last-child,td:last-child{text-align:right}
+td:last-child{font-weight:700}
+textarea{width:100%;min-height:110px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--bg);resize:vertical;font-size:14px}
+textarea:focus{outline:2px solid var(--primary-soft);border-color:var(--primary)}
+.saved{font-size:12px;color:var(--muted);min-height:18px;margin-top:6px}
+.dl{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14px;margin:0}
+.dl dt{color:var(--muted)}
+.dl dd{margin:0;overflow-wrap:anywhere}
+
+/* 하단 고정 바 */
+.bottombar{position:fixed;left:0;right:0;bottom:0;z-index:20;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:linear-gradient(to top,var(--bg) 70%,transparent)}
+.bottombar .inner{max-width:1008px;margin:0 auto;padding:10px;display:grid;grid-template-columns:auto 1fr;gap:10px;background:var(--card);border-radius:18px;box-shadow:0 6px 24px rgba(30,27,46,.12)}
+.favbtn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line);background:var(--card);border-radius:14px;padding:14px 22px;font-weight:700;cursor:pointer}
+.favbtn.on{border-color:var(--primary);color:var(--primary-ink);background:var(--primary-soft)}
+.favbtn.on svg path{fill:currentColor}
+.naverbtn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--primary);color:#fff;border-radius:14px;padding:14px;font-weight:700;text-decoration:none}
+.naverbtn:hover{opacity:.93}
+body.detail{padding-bottom:110px}
+
+/* 잠금 화면 · 모달 · 토스트 */
+.lock{position:fixed;inset:0;z-index:50;background:var(--bg);display:grid;place-items:center;padding:16px}
+.lockcard{background:var(--card);border-radius:22px;padding:32px 28px;width:100%;max-width:380px;box-shadow:var(--shadow);text-align:center}
+.lockcard .logo{margin:0 auto 14px;width:56px;height:56px;border-radius:16px}
+.lockcard h2{margin:0 0 4px;font-size:20px}
+.lockcard p{margin:0 0 20px;color:var(--muted);font-size:14px}
+.lockcard input[type=password]{width:100%;border:1px solid var(--line);border-radius:12px;padding:13px 14px;background:var(--bg);font-size:16px}
+.lockcard label{display:flex;align-items:center;gap:8px;justify-content:center;margin:14px 0;font-size:13px;color:var(--muted)}
+.primary{width:100%;border:0;background:var(--primary);color:#fff;border-radius:12px;padding:13px;font-weight:700;cursor:pointer;font-size:15px}
+.err{color:var(--warn);font-size:13px;min-height:20px;margin-top:10px}
+.modal{position:fixed;inset:0;z-index:40;background:rgba(20,18,30,.45);display:grid;place-items:center;padding:16px}
+.modal .box{background:var(--card);border-radius:20px;padding:24px;max-width:420px;width:100%}
+.modal h3{margin:0 0 8px;font-size:18px}
+.modal p{margin:0 0 18px;color:var(--muted);font-size:14px;line-height:1.6}
+.modal .btns{display:flex;gap:8px;justify-content:flex-end}
+.modal .btns button{border:0;border-radius:12px;padding:11px 18px;font-weight:700;cursor:pointer;background:var(--off-bg)}
+.modal .btns button.ok{background:var(--primary);color:#fff}
+.toast{position:fixed;left:50%;top:16px;transform:translateX(-50%);z-index:60;background:var(--dark);color:var(--dark-ink);border-radius:12px;padding:11px 18px;font-size:14px;font-weight:600;box-shadow:0 6px 24px rgba(0,0,0,.2);max-width:calc(100% - 32px)}
+
+@media (max-width:900px){
+  .hero{grid-template-columns:1fr}
+  .item{grid-template-columns:auto 1fr;gap:12px 14px}
+  .item .mid{grid-column:1 / -1}
+  .item .act{grid-column:1 / -1;justify-content:space-between}
+  .cols{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  .appbar{padding:12px 0 14px}
+  .actions{width:100%}
+  .actions .pill{flex:1;justify-content:center}
+  .hero{padding:22px 20px;border-radius:18px}
+  .hero .big{font-size:36px}
+  .tiles{grid-template-columns:repeat(2,1fr)}
+  .tabs{gap:4px;padding:5px}
+  .tab{padding:10px 8px;flex-direction:column;align-items:flex-start;gap:6px}
+  .tab small{display:none}
+  .tab b{font-size:14px}
+  .tab .cnt{min-width:24px;height:24px;font-size:12px}
+  .item{padding:16px}
+  .ico{width:44px;height:44px}
+  .nm{font-size:16px}
+  .act .go{flex:1;justify-content:center}
+  .dhead{padding:20px}
+  .dhead .l{gap:14px}
+  .dhead .ico{width:52px;height:52px}
+  .dhead h1{font-size:21px}
+  .dprice{text-align:left}
+  .dprice b{font-size:28px}
+  .facts{grid-template-columns:repeat(2,1fr)}
+  .card{padding:18px}
+  .crow{grid-template-columns:26px 44px 1fr;row-gap:2px}
+  .crow .v{grid-column:3;text-align:left}
+  .favbtn{padding:14px 14px}
+  .favbtn .t{display:none}
+}
+</style>
+</head>
+<body>
+<div class="lock hidden" id="lock">
+  <form class="lockcard" id="lockform" autocomplete="off">
+    <div class="logo" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
+    <h2>우리집 찾기</h2>
+    <p>비밀번호를 입력하면 매물 정보가 열려요</p>
+    <input type="password" id="pw" placeholder="비밀번호" aria-label="비밀번호" autofocus>
+    <label><input type="checkbox" id="remember"> 이 기기에서 비밀번호 기억하기</label>
+    <button class="primary" type="submit" id="unlockbtn">열기</button>
+    <div class="err" id="lockerr"></div>
+  </form>
+</div>
+
+<div class="wrap" id="shell" hidden>
+  <header class="appbar">
+    <a class="brand" href="#/">
+      <span class="logo" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg></span>
+      <span><b>우리집 찾기</b><small>서울 아파트 매물 알림</small></span>
+    </a>
+    <div class="actions">
+      <span class="pill"><i class="dot"></i><span id="updated">-</span></span>
+      <select class="sel" id="date" aria-label="결과 날짜 선택"></select>
+      <button class="iconbtn" id="sync" type="button" title="네이버부동산에서 매물을 새로 가져와요">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/><path d="M3 21v-5h5"/></svg>
+        <span id="synctext">동기화</span>
+      </button>
+      <button class="iconbtn" id="lockbtn" type="button" title="잠그기" aria-label="잠그기">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      </button>
+    </div>
+  </header>
+  <main id="view"></main>
+  <div style="height:40px"></div>
+</div>
+<div id="bottombar"></div>
+<div id="modal"></div>
+<div id="toast"></div>
+
+<script>
+const PAYLOAD = {"mode": "enc", "salt": "JuLzLZVTkfKsuYz+cj9REA==", "iv": "ZrxtNEKiJlDNZRzs", "iter": 250000, "ct": "VzS6cl/zXTI2ELIz3EiQn7QSkdDsoZvHx8xl68s9ie+yWc+ZN1smXSwofDZoDudiuIGFwTisoUsttHrIg3gDQF4eTA1Myt7KY059JC94RXIhwNtxBqlBQZ4="};
+
+const COND = {1:"3년 내 호재",2:"방 3개 이상",3:"역 도보 20분 내외",4:"700세대 이상",5:"세대당 주차 0.99대 이상",6:"초·중·고품아 (대학 제외)",7:"계단식 구조"};
+// 내 PC 서버(결과보기.bat)로 열었을 때만 동기화·서버 저장 사용. GitHub Pages나 파일로 열면 사용 안 함
+const IS_HTTP = location.protocol.startsWith("http") && ["127.0.0.1", "localhost"].includes(location.hostname);
+const IS_PAGES = location.protocol === "https:" && !IS_HTTP;
+const S = {date:"", tab:"1", gu:"", sort:"rank"};
+let DATA = null, PW = "", USER = {favorites:{}, memos:{}};
+
+/* ---------- 도우미 ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const safeUrl = u => /^https?:\/\//i.test(u || "") ? u : "#";
+const need = v => (v == null || v === "" || v === "확인필요") ? "확인필요" : v;
+const store = {
+  get(k, area){ try { return (area || localStorage).getItem(k); } catch(e){ return null; } },
+  set(k, v, area){ try { (area || localStorage).setItem(k, v); } catch(e){} },
+  del(k, area){ try { (area || localStorage).removeItem(k); } catch(e){} },
+};
+const SS = (() => { try { return sessionStorage; } catch(e){ return null; } })();
+const ICON = {
+  building:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h.01M12 7h.01M15 7h.01M9 11h.01M12 11h.01M15 11h.01M9 15h.01M12 15h.01M15 15h.01M10 21v-3h4v3"/></svg>',
+  heart:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>',
+  pin:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.1-7-11.5A7 7 0 0 1 19 9.5C19 14.9 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
+  chev:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>',
+  back:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg>',
+  ext:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></svg>',
+  train:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="14" rx="3"/><path d="M5 11h14M9 21l1.5-4M15 21l-1.5-4"/><circle cx="9" cy="14" r=".6" fill="currentColor"/><circle cx="15" cy="14" r=".6" fill="currentColor"/></svg>',
+  school:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 9 10-5 10 5-10 5z"/><path d="M6 11v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5"/></svg>',
+};
+function toast(msg, ms){
+  $("#toast").innerHTML = `<div class="toast" role="status">${esc(msg)}</div>`;
+  clearTimeout(toast.t); toast.t = setTimeout(() => $("#toast").innerHTML = "", ms || 3200);
+}
+function modal(title, body, buttons){
+  return new Promise(res => {
+    $("#modal").innerHTML = `<div class="modal" role="dialog" aria-modal="true"><div class="box"><h3>${esc(title)}</h3><p>${body}</p>
+      <div class="btns">${buttons.map((b, i) => `<button type="button" data-i="${i}" class="${b.ok ? "ok" : ""}">${esc(b.label)}</button>`).join("")}</div></div></div>`;
+    $("#modal").querySelectorAll("button").forEach(b => b.onclick = () => { $("#modal").innerHTML = ""; res(+b.dataset.i); });
+  });
+}
+function fmtUpdated(s){ // "2026-11-12 10:00" → "2026.11.12 오전 10:00"
+  const m = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(s || ""); if (!m) return s || "-";
+  let h = +m[4]; const ap = h < 12 ? "오전" : "오후"; h = h % 12 || 12;
+  return `${m[1]}.${m[2]}.${m[3]} ${ap} ${h}:${m[5]}`;
+}
+function floorText(f){ const a = String(f || "").split("/")[0]; return a ? (/^\d+$/.test(a) ? a + "층" : a + "층") : "층 확인필요"; }
+function areaText(r){ return r["전용면적"] ? `전용 ${Math.round(r["전용면적"])}㎡` : "면적 확인필요"; }
+function stationNear(r){ return r["역명"] ? `${r["역명"]} 근처` : (r["동"] && r["동"] !== "확인필요" ? r["동"] : ""); }
+function rentInfo(r){
+  const t = r["세입자"] || "";
+  if (t === "월세세입자" || (r["매물종류"] || "").includes("월세세입자")) return {cls:"bad", text:"월세세입자 있음"};
+  if (t === "세입자없음") return {cls:"", text:"월세 없음"};
+  if (t === "전세세입자") return {cls:"", text:"월세 없음 · 전세"};
+  return {cls:"q", text:"세입자 확인필요"};
+}
+const metCount = r => Object.values(r["조건"] || {}).filter(v => v === true).length;
+
+/* ---------- 잠금 해제 ---------- */
+function b64d(s){ const b = atob(s); const u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
+async function decrypt(pw){
+  const enc = new TextEncoder();
+  const base = await crypto.subtle.importKey("raw", enc.encode(pw), "PBKDF2", false, ["deriveKey"]);
+  const key = await crypto.subtle.deriveKey({name:"PBKDF2", salt:b64d(PAYLOAD.salt), iterations:PAYLOAD.iter, hash:"SHA-256"},
+    base, {name:"AES-GCM", length:256}, false, ["decrypt"]);
+  const pt = await crypto.subtle.decrypt({name:"AES-GCM", iv:b64d(PAYLOAD.iv)}, key, b64d(PAYLOAD.ct));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+async function tryUnlock(pw){ try { DATA = await decrypt(pw); PW = pw; return true; } catch(e){ return false; } }
+async function boot(){
+  if (PAYLOAD.mode !== "enc"){ DATA = PAYLOAD.data; $("#lockbtn").classList.add("hidden"); return start(); }
+  if (!window.crypto || !crypto.subtle){
+    $("#lock").classList.remove("hidden");
+    $("#lockerr").textContent = "이 브라우저에서는 잠금을 풀 수 없어요. 크롬이나 엣지로 열어 주세요.";
+    return;
+  }
+  const saved = store.get("apt-pw", SS) || store.get("apt-pw");
+  if (saved && await tryUnlock(saved)) return start();
+  $("#lock").classList.remove("hidden"); $("#pw").focus();
+  $("#lockform").onsubmit = async e => {
+    e.preventDefault();
+    const pw = $("#pw").value; if (!pw) return;
+    $("#unlockbtn").textContent = "확인 중…"; $("#lockerr").textContent = "";
+    if (await tryUnlock(pw)){
+      store.set("apt-pw", pw, SS);
+      if ($("#remember").checked) store.set("apt-pw", pw);
+      $("#lock").classList.add("hidden"); start();
+    } else {
+      $("#unlockbtn").textContent = "열기"; $("#lockerr").textContent = "비밀번호가 맞지 않아요.";
+      $("#pw").select();
+    }
+  };
+}
+$("#lockbtn").onclick = () => { store.del("apt-pw", SS); store.del("apt-pw"); location.hash = ""; location.reload(); };
+
+/* ---------- 관심매물 · 메모 저장 ---------- */
+function mergeUser(a, b){
+  const out = {favorites:{...(a.favorites || {})}, memos:{...(a.memos || {})}};
+  for (const kind of ["favorites", "memos"])
+    for (const [k, v] of Object.entries((b || {})[kind] || {}))
+      if (v && (!out[kind][k] || (v.at || 0) > (out[kind][k].at || 0))) out[kind][k] = v;
+  return out;
+}
+async function api(path, opts){
+  const o = Object.assign({headers:{}}, opts || {});
+  o.headers["X-Site-Password"] = encodeURIComponent(PW);
+  if (o.body){ o.headers["Content-Type"] = "application/json"; o.body = JSON.stringify(o.body); }
+  const r = await fetch(path, o);
+  let j = {}; try { j = await r.json(); } catch(e){}
+  if (!r.ok) throw new Error(j.error || ("오류 " + r.status));
+  return j;
+}
+let saveTimer;
+function saveUser(){
+  store.set("apt-user", JSON.stringify(USER));
+  if (!IS_HTTP) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => api("/api/state", {method:"POST", body:USER}).catch(() => toast("서버에 저장하지 못했어요. 이 브라우저에는 저장됐어요.")), 500);
+}
+const isFav = id => !!(USER.favorites[id] && USER.favorites[id].on);
+function toggleFav(id){
+  const row = findRow(id);
+  const on = !isFav(id);
+  USER.favorites[id] = {on, at:Date.now(), row: on ? row : (USER.favorites[id] || {}).row};
+  saveUser();
+  toast(on ? "관심매물에 담았어요" : "관심매물에서 뺐어요");
+  route();
+}
+
+/* ---------- 데이터 ---------- */
+const latest = () => DATA.dates[0] || "";
+const rowsOf = d => ((DATA.history[d] || {}).rows) || [];
+function findRow(id){
+  for (const d of [S.date, ...DATA.dates]){ const r = rowsOf(d).find(x => x["매물번호"] === id); if (r) return r; }
+  return (USER.favorites[id] || {}).row || null;
+}
+function favRows(){
+  const today = new Map(rowsOf(latest()).map(r => [r["매물번호"], r]));
+  return Object.entries(USER.favorites).filter(([, v]) => v.on)
+    .sort((a, b) => (b[1].at || 0) - (a[1].at || 0))
+    .map(([id, v]) => today.get(id) ? today.get(id) : (v.row ? Object.assign({}, v.row, {_gone:true}) : null))
+    .filter(Boolean);
+}
+function sortRows(list){
+  const l = list.slice();
+  if (S.sort === "asc") l.sort((a, b) => (a["가격만원"] ?? 1e12) - (b["가격만원"] ?? 1e12));
+  if (S.sort === "desc") l.sort((a, b) => (b["가격만원"] ?? -1) - (a["가격만원"] ?? -1));
+  return l;
+}
+
+/* ---------- 목록 화면 ---------- */
+function chipsHtml(r){
+  return Object.keys(COND).map(k => {
+    const v = (r["조건"] || {})[k], label = (r["조건값"] || {})[k] || COND[k];
+    const cls = v === true ? "" : v === false ? "n" : "q";
+    return `<span class="chip ${cls}" title="${k}순위 · ${esc(COND[k])}${v === false ? " (미충족)" : v == null ? " (확인필요)" : ""}">${v == null ? "? " : ""}${esc(label)}</span>`;
+  }).join("");
+}
+function itemHtml(r){
+  const id = r["매물번호"], n = metCount(r), rent = rentInfo(r), fav = isFav(id);
+  return `<article class="item">
+    <div class="ico" aria-hidden="true">${ICON.building}</div>
+    <div class="who">
+      <div class="nm"><a href="#/l/${encodeURIComponent(id)}">${esc(r["단지명"])}</a>
+        <button class="heart ${fav ? "on" : ""}" data-fav="${esc(id)}" aria-pressed="${fav}" aria-label="관심매물 ${fav ? "해제" : "담기"}" title="관심매물 ${fav ? "해제" : "담기"}">${ICON.heart}</button></div>
+      <div class="loc">${ICON.pin} 서울시 ${esc(r["구"])}${stationNear(r) ? " · " + esc(stationNear(r)) : ""}</div>
+      ${r._gone ? '<div class="gone">오늘 목록에 없음 (팔렸거나 내려감)</div>' : ""}
+    </div>
+    <div class="mid">
+      <div class="pr"><b>${esc(r["가격"])}</b><span>${esc(areaText(r))} · ${esc(floorText(r["층"]))}</span></div>
+      <div class="prog"><div class="track"><i style="width:${(n / 7 * 100).toFixed(0)}%"></i></div><span>${n} / 7 충족</span></div>
+      <div class="chips">${chipsHtml(r)}</div>
+    </div>
+    <div class="act"><span class="rent ${rent.cls}">${esc(rent.text)}</span>
+      <a class="go" href="#/l/${encodeURIComponent(id)}">상세보기 ${ICON.chev}</a></div>
+  </article>`;
+}
+function renderList(){
+  document.body.classList.remove("detail");
+  $("#bottombar").innerHTML = "";
+  const rows = rowsOf(S.date);
+  const r1 = rows.filter(r => r["전부충족"]), r2 = rows.filter(r => !r["전부충족"]);
+  const favs = favRows();
+  const wol = rows.filter(r => rentInfo(r).cls === "bad").length;
+  const base = S.tab === "1" ? r1 : S.tab === "2" ? r2 : favs;
+  const gus = [...new Set(base.map(r => r["구"]).filter(g => g && g !== "확인필요"))].sort();
+  if (S.gu && !gus.includes(S.gu)) S.gu = "";
+  const shown = sortRows(base.filter(r => !S.gu || r["구"] === S.gu));
+  const isLatest = S.date === latest();
+  const emptyMsg = S.tab === "fav" ? "하트(♡)를 눌러 관심매물을 담아 보세요." :
+    S.tab === "1" ? "이 날짜에는 7개 조건을 모두 충족한 매물이 없어요." : "표시할 매물이 없어요.";
+  $("#view").innerHTML = `
+    <section class="hero">
+      <div><div class="k">${isLatest ? "오늘" : esc(S.date)} 조건에 맞는 매물</div>
+        <div class="big">${rows.length}건</div>
+        <div class="sub">서울 전역 · 11억 5천만 원 이하 · 매일 오전 10시 자동 검색</div></div>
+      <div class="tiles">
+        <button class="tile" data-tab="1"><span>1순위</span><b>${r1.length}건</b></button>
+        <button class="tile" data-tab="2"><span>2순위</span><b>${r2.length}건</b></button>
+        <div class="tile" style="cursor:default"><span>월세세입자</span><b>${wol}건</b></div>
+        <button class="tile" data-tab="fav"><span>관심매물</span><b>${favs.length}건</b></button>
+      </div>
+    </section>
+    <nav class="tabs" aria-label="매물 구분">
+      <button class="tab ${S.tab === "1" ? "on" : ""}" data-tab="1"><span><b>1순위</b><small>7개 조건 모두 충족</small></span><span class="cnt">${r1.length}</span></button>
+      <button class="tab ${S.tab === "2" ? "on" : ""}" data-tab="2"><span><b>2순위</b><small>호재 + 방 3개 충족</small></span><span class="cnt">${r2.length}</span></button>
+      <button class="tab ${S.tab === "fav" ? "on" : ""}" data-tab="fav"><span><b>${ICON.heart.replace('width="18" height="18"', 'width="15" height="15"')}관심매물</b><small>저장한 매물 모아보기</small></span><span class="cnt">${favs.length}</span></button>
+    </nav>
+    <div class="filters">
+      <div class="chipsrow"><button class="fchip ${!S.gu ? "on" : ""}" data-gu="">전체</button>
+        ${gus.map(g => `<button class="fchip ${S.gu === g ? "on" : ""}" data-gu="${esc(g)}">${esc(g)}</button>`).join("")}</div>
+      <select class="sel sortsel" id="sort" aria-label="정렬">
+        <option value="rank" ${S.sort === "rank" ? "selected" : ""}>${S.tab === "fav" ? "담은 순" : "충족 조건 많은 순"}</option>
+        <option value="asc" ${S.sort === "asc" ? "selected" : ""}>가격 낮은 순</option>
+        <option value="desc" ${S.sort === "desc" ? "selected" : ""}>가격 높은 순</option>
+      </select>
+    </div>
+    <div class="list">${shown.map(itemHtml).join("") || `<div class="empty">${emptyMsg}</div>`}</div>`;
+  $("#view").querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { S.tab = b.dataset.tab; S.gu = ""; saveView(); renderList(); });
+  $("#view").querySelectorAll("[data-gu]").forEach(b => b.onclick = () => { S.gu = b.dataset.gu; saveView(); renderList(); });
+  $("#sort").onchange = e => { S.sort = e.target.value; saveView(); renderList(); };
+  bindHearts();
+}
+function bindHearts(){
+  document.querySelectorAll("[data-fav]").forEach(b => b.onclick = e => { e.preventDefault(); toggleFav(b.dataset.fav); });
+}
+function saveView(){ store.set("apt-view", JSON.stringify({tab:S.tab, sort:S.sort})); }
+
+/* ---------- 상세 화면 ---------- */
+function renderDetail(id){
+  const r = findRow(id);
+  if (!r){ $("#view").innerHTML = `<div class="empty">매물을 찾을 수 없어요. <a href="#/">목록으로</a></div>`; return; }
+  document.body.classList.add("detail");
+  const n = metCount(r), rent = rentInfo(r), fav = isFav(id);
+  const conds = Object.keys(COND).map(k => {
+    const v = (r["조건"] || {})[k];
+    const cls = v === true ? "" : v === false ? "n" : "q", mark = v === true ? "✓" : v === false ? "✕" : "?";
+    const val = v == null ? "확인필요" : (r["조건값"] || {})[k] || "";
+    return `<div class="crow"><span class="cmark ${cls}" aria-label="${v === true ? "충족" : v === false ? "미충족" : "확인필요"}">${mark}</span>
+      <span class="r">${k}순위</span><span>${esc(COND[k])}</span><span class="v">${esc(val)}</span></div>`;
+  }).join("");
+  const tl = (r["호재일정"] || []).map(t => `<li><small>${esc(t["시기"])}</small><span>${esc(t["내용"])}</span></li>`).join("");
+  const srcs = (r["호재링크"] || []).map(l => `<a class="link" href="${esc(safeUrl(l.url))}" target="_blank" rel="noopener">${esc(l["제목"] || "근거 기사·공식 발표 보기")} ↗</a>`).join("");
+  const trades = r["실거래"] || [];
+  const d = r["실거래차이"];
+  const cmp = d == null ? "" : Math.abs(d) < 0.5 ? "최근 실거래 평균과 비슷한 가격이에요" :
+    `최근 실거래 평균보다 약 ${Math.abs(d)}% ${d > 0 ? "높은" : "낮은"} 가격이에요`;
+  const mapUrl = "https://map.naver.com/p/search/" + encodeURIComponent(`서울 ${r["구"]} ${r["단지명"]}`);
+  const memo = (USER.memos[id] || {}).text || "";
+  $("#view").innerHTML = `
+    <div class="dtop"><a class="back" href="#/">${ICON.back} 목록으로</a><small>${r["전부충족"] ? "1순위" : "2순위"} 매물 · 기준일 ${esc(S.date)}</small></div>
+    <section class="card dhead">
+      <div class="l"><div class="ico" aria-hidden="true">${ICON.building}</div>
+        <div><h1>${esc(r["단지명"])} <button class="heart ${fav ? "on" : ""}" data-fav="${esc(id)}" aria-pressed="${fav}" aria-label="관심매물 ${fav ? "해제" : "담기"}">${ICON.heart}</button></h1>
+          <div class="loc">서울시 ${esc(r["구"])} ${esc(r["동"] !== "확인필요" ? r["동"] : "")}${stationNear(r) ? " · " + esc(stationNear(r)) : ""}</div>
+          <div class="badges"><span class="badge">${n} / 7 조건 충족</span><span class="rent badge ${rent.cls}">${esc(rent.text)}</span>
+            ${r._gone ? '<span class="badge rent bad">오늘 목록에 없음</span>' : ""}</div></div></div>
+      <div class="dprice"><small>매매가</small><b>${esc(r["가격"])}</b></div>
+    </section>
+    <section class="facts">
+      <div class="fact"><small>전용면적</small><b>${esc(r["전용면적"] ? Math.round(r["전용면적"] * 10) / 10 + "㎡" : "확인필요")}</b></div>
+      <div class="fact"><small>방 · 욕실</small><b>방 ${esc(r["방수"] ?? "?")} · 욕실 ${esc(r["욕실수"] ?? "?")}</b></div>
+      <div class="fact"><small>층 · 향</small><b>${esc(floorText(r["층"]))} · ${esc(need(r["향"]))}</b></div>
+      <div class="fact"><small>입주(준공)</small><b>${esc(need(r["준공연도"]))}</b></div>
+      <div class="fact"><small>세대수</small><b>${typeof r["세대수"] === "number" ? r["세대수"].toLocaleString() + "세대" : esc(need(r["세대수"]))}</b></div>
+      <div class="fact"><small>세대당 주차</small><b>${r["세대당주차"] != null ? esc(r["세대당주차"]) + "대" : "확인필요"}</b></div>
+    </section>
+    <div class="cols">
+      <div class="col">
+        <section class="card"><h3>조건 체크</h3>${conds}</section>
+        <section class="card"><h3>호재 분석 <span class="tag">1순위 조건</span></h3>
+          <p class="p">${esc(r["호재요약"] || "호재 정보가 없어요.")}</p>
+          ${tl ? `<ul class="tl">${tl}</ul>` : '<div style="height:14px"></div>'}
+          <div class="srcs">${srcs || '<span class="p">근거 링크 없음</span>'}</div></section>
+        <section class="card"><h3>시세 흐름 <small>국토부 실거래가 기준 · 같은 면적</small></h3>
+          ${trades.length ? `${cmp ? `<div class="notice">${esc(cmp)}</div>` : ""}
+            <table><thead><tr><th>거래월</th><th>층</th><th>거래가</th></tr></thead><tbody>
+            ${trades.map(t => `<tr><td>${esc(t["거래월"])}</td><td>${esc(t["층"] ? t["층"] + "층" : "-")}</td><td>${esc(t["가격"])}</td></tr>`).join("")}
+            </tbody></table>` : '<p class="p" style="color:var(--muted)">같은 면적의 최근 6개월 실거래 기록이 없어요.</p>'}</section>
+      </div>
+      <div class="col">
+        <section class="card"><h3>입지</h3>
+          <div class="loccard"><span class="i">${ICON.train}</span><span><small>가까운 역</small><b>${esc(need(r["가까운역"]))} · 도보 ${esc(need(r["도보시간"]))}</b></span></div>
+          <div class="loccard"><span class="i">${ICON.school}</span><span><small>품은 학교</small><b>${esc(need(r["품은학교"]))}</b></span></div>
+          <a class="link" href="${mapUrl}" target="_blank" rel="noopener">지도에서 보기 ↗</a></section>
+        <section class="card"><h3>세입자 정보</h3><p class="p">${esc(r["세입자설명"] || r["매물종류"] || "확인필요")}</p></section>
+        <section class="card"><h3>내 메모</h3>
+          <textarea id="memo" placeholder="현장 방문 메모, 중개사 연락처 등을 적어 두세요">${esc(memo)}</textarea>
+          <div class="saved" id="memosaved">${IS_HTTP ? "" : "이 기기 브라우저에만 저장돼요 (PC에서 결과보기.bat로 열면 PC에 저장)"}</div></section>
+        <section class="card"><h3>매물 정보</h3><dl class="dl">
+          <dt>면적</dt><dd>${esc(need(r["면적"]))}</dd>
+          <dt>구조</dt><dd>${esc(need(r["구조"]))}</dd>
+          <dt>매물종류</dt><dd>${esc(r["매물종류"])}</dd>
+          ${r["특징"] ? `<dt>설명</dt><dd>${esc(r["특징"])}</dd>` : ""}
+          ${r["중개사"] ? `<dt>중개사</dt><dd>${esc(r["중개사"])}</dd>` : ""}
+          <dt>최초 발견</dt><dd>${esc(r["최초발견일"] || "-")}</dd>
+          <dt>매물번호</dt><dd>${esc(id)}</dd></dl>
+          <div style="margin-top:12px"><a class="link" href="${esc(safeUrl(r["단지링크"]))}" target="_blank" rel="noopener">네이버부동산 단지 전체 보기 ↗</a></div></section>
+      </div>
+    </div>`;
+  $("#bottombar").innerHTML = `<div class="bottombar"><div class="inner">
+      <button class="favbtn ${fav ? "on" : ""}" data-fav="${esc(id)}" aria-pressed="${fav}">${ICON.heart}<span class="t">${fav ? "관심매물 해제" : "관심매물 담기"}</span></button>
+      <a class="naverbtn" href="${esc(safeUrl(r["매물링크"]))}" target="_blank" rel="noopener">네이버부동산에서 매물 보기 ${ICON.ext}</a>
+    </div></div>`;
+  bindHearts();
+  let mt;
+  $("#memo").oninput = e => {
+    clearTimeout(mt);
+    mt = setTimeout(() => {
+      USER.memos[id] = {text:e.target.value, at:Date.now()}; saveUser();
+      $("#memosaved").textContent = "저장됨 · " + new Date().toLocaleTimeString("ko-KR", {hour:"2-digit", minute:"2-digit"});
+    }, 600);
+  };
+}
+
+/* ---------- 라우팅 ---------- */
+let lastHash = null;
+function route(){
+  const m = /^#\/l\/(.+)$/.exec(location.hash);
+  const changed = location.hash !== lastHash; lastHash = location.hash;
+  if (m) renderDetail(decodeURIComponent(m[1])); else renderList();
+  if (changed) window.scrollTo(0, 0);
+}
+
+/* ---------- 동기화 ---------- */
+let polling = null;
+function setSyncUi(running, text){
+  $("#sync").classList.toggle("busy", running);
+  $("#synctext").textContent = running ? (text || "동기화 중…") : "동기화";
+}
+async function pollSync(){
+  try {
+    const s = await api("/api/sync/status");
+    if (s.running){ setSyncUi(true, s.step + "…"); polling = setTimeout(pollSync, 4000); return; }
+    polling = null; setSyncUi(false);
+    if (s.ok){ toast("새 매물 정보를 가져왔어요. 화면을 새로 고칠게요."); setTimeout(() => location.reload(), 1200); }
+    else if (s.ok === false) modal("동기화 실패", esc(s.error || "알 수 없는 오류") , [{label:"확인", ok:true}]);
+  } catch(e){ polling = null; setSyncUi(false); toast("동기화 상태를 확인하지 못했어요: " + e.message); }
+}
+$("#sync").onclick = async () => {
+  if (IS_PAGES){
+    await modal("휴대폰에서는 자동으로 새로 고쳐져요",
+      "매일 오전 10시 자동 검색이 끝나면 이 페이지에 새 결과가 올라와요 (반영까지 1~2분). 지금 바로 새로 가져오려면 PC에서 <b>결과보기.bat</b>를 열고 동기화를 눌러 주세요.",
+      [{label:"확인", ok:true}]);
+    return;
+  }
+  if (!IS_HTTP){
+    await modal("동기화는 '결과보기'로 열었을 때 사용할 수 있어요",
+      "프로젝트 폴더의 <b>결과보기.bat</b>를 더블클릭해서 열면 동기화 버튼이 동작해요. 지금 화면은 파일로 바로 열린 상태라 새 매물을 가져올 수 없어요.",
+      [{label:"확인", ok:true}]);
+    return;
+  }
+  if (polling) return toast("이미 동기화 중이에요.");
+  const go = await modal("새 매물 정보를 가져올까요?",
+    "추려 둔 단지의 네이버부동산 페이지를 천천히 다시 읽어요. 단지 수에 따라 <b>5~20분</b> 걸려요. 끝나면 화면이 자동으로 새로 고쳐져요.",
+    [{label:"취소"}, {label:"가져오기", ok:true}]);
+  if (go !== 1) return;
+  try { await api("/api/sync", {method:"POST", body:{}}); setSyncUi(true, "시작…"); polling = setTimeout(pollSync, 3000); }
+  catch(e){ modal("동기화를 시작하지 못했어요", esc(e.message), [{label:"확인", ok:true}]); }
+};
+
+/* ---------- 시작 ---------- */
+async function start(){
+  $("#shell").hidden = false;
+  try { const v = JSON.parse(store.get("apt-view") || "{}"); if (v.tab) S.tab = v.tab; if (v.sort) S.sort = v.sort; } catch(e){}
+  S.date = latest();
+  let local = {}; try { local = JSON.parse(store.get("apt-user") || "{}"); } catch(e){}
+  USER = mergeUser(mergeUser({favorites:{}, memos:{}}, DATA.user || {}), local);
+  $("#date").innerHTML = DATA.dates.map((d, i) => `<option value="${d}">${i === 0 ? "최신 결과" : d + " 결과"}</option>`).join("") || "<option>기록 없음</option>";
+  $("#date").onchange = e => { S.date = e.target.value; S.gu = ""; updatePill(); location.hash = "#/"; route(); };
+  updatePill();
+  window.onhashchange = route;
+  route();
+  if (IS_HTTP){
+    try {
+      const srv = await api("/api/state");
+      USER = mergeUser(USER, srv);
+      saveUser(); route();
+      const s = await api("/api/sync/status");
+      if (s.running){ setSyncUi(true, s.step + "…"); polling = setTimeout(pollSync, 3000); }
+    } catch(e){ toast("서버 연결 확인 실패: " + e.message); }
+  }
+}
+function updatePill(){
+  $("#updated").textContent = S.date === latest() ? `${fmtUpdated(DATA.generated)} 업데이트` : `${S.date.replace(/-/g, ".")} 기록 보는 중`;
+}
+boot();
+</script>
+</body>
+</html>
